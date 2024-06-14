@@ -1,0 +1,123 @@
+// Import required modules
+const express = require('express');
+const mysql = require('mysql');
+const bodyParser = require('body-parser');
+
+const app = express();
+
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+
+const connection = mysql.createConnection({
+    host: 'localhost',
+    user: 'root',
+    database: 'samartha_recruitment'
+});
+
+connection.connect((err) => {
+    if (err) {
+        console.error('Error connecting to MySQL database:', err);
+        return;
+    }
+    console.log('Connected to MySQL database');
+});
+
+// POST route for registration
+app.post('/register', (req, res) => {
+    const { user_name, email_id } = req.body;
+
+    // Query to insert new user into the database
+    const sql = `INSERT INTO user (user_name, email_id) VALUES (?, ?)`;
+    connection.query(sql, [user_name, email_id], (err, result) => {
+        if (err) {
+            console.error('Error executing SQL query:', err);
+            res.status(500).send('An error occurred during registration');
+            return;
+        }
+        
+        // If insertion was successful
+        res.send('Registration successful');
+    });
+});
+
+// PUT route to update user information
+app.put('/users/:user_id', (req, res) => {
+    const userId = req.params.user_id;
+    const { user_name, email_id } = req.body;
+
+    // Query to update user information
+    const sql = `UPDATE user SET user_name = ?, email_id = ? WHERE user_id = ?`;
+    connection.query(sql, [user_name, email_id, userId], (err, result) => {
+        if (err) {
+            console.error('Error executing SQL query:', err);
+            res.status(500).send('An error occurred while updating user information');
+            return;
+        }
+        if (result.affectedRows > 0) {
+            res.send('User information updated successfully');
+        } else {
+            res.status(404).send('User not found');
+        }
+    });
+});
+
+// GET route to fetch all users
+app.get('/users', (req, res) => {
+    // Query to fetch all users
+    const sql = 'SELECT * FROM user';
+    connection.query(sql, (err, results) => {
+        if (err) {
+            console.error('Error executing SQL query:', err);
+            res.status(500).send('An error occurred while fetching users');
+            return;
+        }
+        res.json(results);
+    });
+});
+
+// GET route to fetch a user by user ID
+app.get('/users/:user_id', (req, res) => {
+    const userId = req.params.user_id;
+
+    // Query to fetch user by user ID
+    const sql = `SELECT * FROM user WHERE user_id = ?`;
+    connection.query(sql, [userId], (err, result) => {
+        if (err) {
+            console.error('Error executing SQL query:', err);
+            res.status(500).send('An error occurred while fetching user');
+            return;
+        }
+        if (result.length > 0) {
+            res.json(result[0]); // Send the first user object (assuming user ID is unique)
+        } else {
+            res.status(404).send('User not found');
+        }
+    });
+});
+
+
+// DELETE route to delete a user by user ID
+app.delete('/users/:user_id', (req, res) => {
+    const userId = req.params.user_id;
+
+    // Query to delete user by user ID
+    const sql = `DELETE FROM user WHERE user_id = ?`;
+    connection.query(sql, [userId], (err, result) => {
+        if (err) {
+            console.error('Error executing SQL query:', err);
+            res.status(500).send('An error occurred while deleting user');
+            return;
+        }
+        if (result.affectedRows > 0) {
+            res.send('User deleted successfully');
+        } else {
+            res.status(404).send('User not found');
+        }
+    });
+});
+
+// Start the server
+const port = 3000;
+app.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+});
