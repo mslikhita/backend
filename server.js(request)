@@ -130,27 +130,6 @@ app.get('/requests/:request_id/job_description', (req, res) => {
     });
 });
 
-// PUT request to update an existing request by request_id
-app.put('/requests/:id', (req, res) => {
-    const requestId = req.params.id;
-    const { email_id, designation, job_description, skills, experience } = req.body;
-  
-    // Update request in the database
-    const sql = 'UPDATE request SET email_id = ?, designation = ?, job_description = ?, skills = ?, experience = ? WHERE request_id = ?';
-    db.query(sql, [email_id, designation, job_description, skills, experience, requestId], (err, result) => {
-        if (err) {
-            console.error('Error updating request:', err);
-            return res.status(500).json({ error: 'An error occurred while updating request' });
-        }
-        if (result.affectedRows === 0) {
-            return res.status(404).send('Request not found');
-        }
-        console.log('Request updated successfully');
-        res.status(200).send('Request updated successfully');
-    });
-});
-
-
 // DELETE request to delete a request by ID
 app.delete('/requests/:id', (req, res) => {
     const requestId = req.params.id;
@@ -174,4 +153,3 @@ app.delete('/requests/:id', (req, res) => {
 app.listen(port, () => {
   console.log(`Server is listening on port ${port}`);
 });
-
